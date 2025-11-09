@@ -25,8 +25,22 @@ class ChatResponse(BaseModel):
 
 @app.post("/chat", response_model=ChatResponse)
 def chat_with_bot(request: ChatRequest):
-    reply, new_state = process_message(request.message, request.state)
-    return ChatResponse(reply=reply, newState=new_state)
+    try:
+        # Ensure state is properly initialized
+        if not request.state or 'scores' not in request.state:
+            request.state = get_initial_state()
+        reply, new_state = process_message(request.message, request.state)
+        return ChatResponse(reply=reply, newState=new_state)
+    except Exception as e:
+        print(f"Error in chat_with_bot: {e}")
+        import traceback
+        traceback.print_exc()
+        # Return a safe default response
+        initial_state = get_initial_state()
+        return ChatResponse(
+            reply="I'm sorry, I encountered an error. Please try again.",
+            newState=initial_state
+        )
 
 @app.get("/start", response_model=ChatResponse)
 def start_conversation():
