@@ -118,7 +118,6 @@ RESPONSES = {
 }
 
 def process_message(user_message, conversation_state):
-    # Ensure conversation_state has the correct structure
     if 'scores' not in conversation_state:
         conversation_state = get_initial_state()
     if 'turn_count' not in conversation_state:
@@ -128,7 +127,7 @@ def process_message(user_message, conversation_state):
     if 'used_responses' not in conversation_state:
         conversation_state['used_responses'] = []
     
-    # Ensure all score keys exist
+
     for key in ['anxiety', 'depression', 'stress']:
         if key not in conversation_state['scores']:
             conversation_state['scores'][key] = 0
@@ -175,12 +174,10 @@ def process_message(user_message, conversation_state):
             else:
                 prediction = model.predict(features)[0]
                 if prediction.lower() in conversation_state['scores']:
-                    # Also weight ML prediction by sentiment intensity
                     ml_score = 1 if sentiment_intensity < 0.5 else 2
                     conversation_state['scores'][prediction.lower()] += ml_score
                 print(f"Model prediction: {prediction}, intensity: {sentiment_intensity:.2f}")
         except ValueError as e:
-            # Handle dimension mismatch errors gracefully
             if "features" in str(e).lower() or "dimension" in str(e).lower():
                 print(f"Feature dimension mismatch: {e}")
                 print("The bot will continue using keyword-based detection and VADER sentiment analysis.")
@@ -193,13 +190,13 @@ def process_message(user_message, conversation_state):
     response_text = ""
     user_msg_lower = user_message.lower()
     
-    # Check if user gave uncertain/unknown answer
+ 
     is_uncertain = any(keyword in user_msg_lower for keyword in UNCERTAIN_KEYWORDS)
     
-    # Check if user gave neutral answer
+
     is_neutral = any(word in user_msg_lower.split() for word in NEUTRAL_KEYWORDS)
     
-    # Helper function to get response avoiding repetition
+
     def get_unique_response(response_list, used_list):
         available = [r for r in response_list if r not in used_list]
         if not available:  # If all used, reset and use all
@@ -210,7 +207,7 @@ def process_message(user_message, conversation_state):
         return chosen
     
     if conversation_state['turn_count'] == 0:
-        # First response after greeting
+
         if is_uncertain:
             response_text = random.choice(RESPONSES['uncertain_response'])
         elif is_neutral and not any(score > 0 for score in conversation_state['scores'].values()):
@@ -218,7 +215,7 @@ def process_message(user_message, conversation_state):
         else:
             response_text = get_unique_response(RESPONSES['follow_up'], conversation_state['used_responses'])
     elif conversation_state['turn_count'] < 3:
-        # Middle of conversation - avoid repeating last question
+
         if is_uncertain:
             # If user doesn't know, don't repeat the same question
             if conversation_state['last_question'] and 'how long' in conversation_state['last_question'].lower():
@@ -244,7 +241,7 @@ def process_message(user_message, conversation_state):
         
         # Reset state after providing a summary
         new_state = get_initial_state()
-        new_state['turn_count'] = -1 # Will be incremented to 0
+        new_state['turn_count'] = -1 
         conversation_state = new_state
     
     # Track last question to avoid repetition
@@ -257,7 +254,7 @@ def get_initial_state():
     return {
         'turn_count': 0,
         'scores': {'anxiety': 0, 'depression': 0, 'stress': 0},
-        'last_question': None,  # Track last question to avoid repetition
-        'used_responses': []  # Track used responses to avoid repetition
+        'last_question': None,
+        'used_responses': [] 
     }
 

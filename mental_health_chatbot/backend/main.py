@@ -5,8 +5,8 @@ from chatbot_logic import process_message, get_initial_state, RESPONSES
 
 app = FastAPI()
 
-# Allow communication from the frontend
-origins = ["*"] # For simplicity, allow all. For production, restrict this.
+
+origins = ["*"] 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -26,7 +26,7 @@ class ChatResponse(BaseModel):
 @app.post("/chat", response_model=ChatResponse)
 def chat_with_bot(request: ChatRequest):
     try:
-        # Ensure state is properly initialized
+
         if not request.state or 'scores' not in request.state:
             request.state = get_initial_state()
         reply, new_state = process_message(request.message, request.state)
@@ -35,7 +35,7 @@ def chat_with_bot(request: ChatRequest):
         print(f"Error in chat_with_bot: {e}")
         import traceback
         traceback.print_exc()
-        # Return a safe default response
+
         initial_state = get_initial_state()
         return ChatResponse(
             reply="I'm sorry, I encountered an error. Please try again.",
