@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let conversationState = {};
     let retryCount = 0; // Счетчик повторных попыток
     const MAX_RETRIES = 3; // Максимальное количество попыток
+    let greetingShown = false; // Флаг, что приветствие уже показано
 
     function addMessage(text, sender) {
         const messageElement = document.createElement('div');
@@ -121,7 +122,13 @@ document.addEventListener('DOMContentLoaded', () => {
             retryCount = 0;
 
             // Успешно получили данные от сервера
-            addMessage(data.reply, 'bot');
+            // Если приветствие уже показано, не показываем ответ сервера (чтобы избежать дубликата)
+            if (!greetingShown) {
+                addMessage(data.reply, 'bot');
+            } else {
+                // Приветствие уже показано, просто обновляем состояние без показа сообщения
+                console.log("Greeting already shown, updating state silently");
+            }
             conversationState = data.newState;
         } catch (error) {
             // Любая ошибка - просто выходим, приветствие уже показано
@@ -166,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Показываем приветствие немедленно
     addMessage(defaultGreeting, 'bot');
     conversationState = defaultState;
+    greetingShown = true; // Отмечаем, что приветствие уже показано
 
     // Пытаемся подключиться к серверу в фоне (необязательно)
     startConversation().catch(err => {
